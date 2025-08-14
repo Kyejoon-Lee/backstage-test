@@ -1,12 +1,17 @@
-site_name: 'backstage-test'
-site_description: 'Main documentation for the helm upload example'
-repo_url: https://github.com/Kyejoon-Lee/backstage-test
-edit_uri: edit/main/docs
+site_name: 'Backstage Test Documentation'
+site_description: 'Documentation for the Backstage Test Helm Chart Template'
+
+docs_dir: docs
+
+nav:
+  - Home: index.md
+  - Usage Guide: usage-guide.md
+  - Values Reference: values-reference.md
 
 plugins:
   - techdocs-core
 
-# For sidebar navigation on https://backstage.io/, see `microsite/sidebars.json`
-nav:
-  - Overview:
-      - Getting started: 'docs/index.md'
+theme:
+  name: material
+  palette:
+    primary: blue
