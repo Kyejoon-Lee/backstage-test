@@ -1,0 +1,9 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: helm upload example
+  description: Example service with helm gitops
+spec:
+  type: service
+  owner: user:kyejoonlee
+  lifecycle: experimental

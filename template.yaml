@@ -1,0 +1,10 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+# https://backstage.io/docs/features/software-catalog/descriptor-format#kind-template
+kind: Template
+metadata:
+  name: Helm Upload Template
+  title: Helm Upload Template
+  description: An example template for the scaffolder that uploads a Helm chart to a Git repository
+spec:
+  owner: user:kyejoonlee
+  type: service
