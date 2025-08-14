@@ -2,9 +2,10 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: backstage-test
+  namespace: default
   annotations:
     github.com/project-slug: Kyejoon-Lee/backstage-test
 spec:
   type: service
-  owner: guest:kyejoonlee
+  owner: group:default/guests
   lifecycle: experimental
