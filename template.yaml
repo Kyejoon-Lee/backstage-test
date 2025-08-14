@@ -2,24 +2,54 @@ apiVersion: scaffolder.backstage.io/v1beta3
 # https://backstage.io/docs/features/software-catalog/descriptor-format#kind-template
 kind: Template
 metadata:
-  name: Helm Upload Template
+  name: helm-upload-template
   title: Helm Upload Template
   description: An example template for the scaffolder that uploads a Helm chart to a Git repository
+  namespace: default
 spec:
   owner: group:default/guests
   type: service
   parameters:
-    - title: Fill in some steps
+    - title: Chart Information
       required:
         - name
+        - description
       properties:
         name:
           title: Chart Name
           type: string
-          description: Unique name of the component
+          description: Unique name of the Helm chart
           ui:autofocus: true
-          ui:options:
-            rows: 5
+        description:
+          title: Chart Description
+          type: string
+          description: Description of what this Helm chart does
+        version:
+          title: Chart Version
+          type: string
+          description: Version of the chart
+          default: "0.1.0"
+    - title: Application Configuration
+      required:
+        - imageRepository
+      properties:
+        imageRepository:
+          title: Container Image Repository
+          type: string
+          description: Container image repository (e.g., nginx, myapp/backend)
+          default: "nginx"
+        imageTag:
+          title: Image Tag
+          type: string
+          description: Container image tag
+          default: "latest"
+        replicaCount:
+          title: Replica Count
+          type: integer
+          description: Number of replicas to deploy
+          default: 1
+          minimum: 1
+          maximum: 10
     - title: Choose a location
       required:
         - repoUrl
@@ -40,13 +70,18 @@ spec:
         url: ./starter
         values:
           name: ${{ parameters.name }}
+          description: ${{ parameters.description }}
+          version: ${{ parameters.version }}
+          imageRepository: ${{ parameters.imageRepository }}
+          imageTag: ${{ parameters.imageTag }}
+          replicaCount: ${{ parameters.replicaCount }}
 
     - id: publish
       name: Publish
       action: publish:github
       input:
         allowedHosts: ['github.com']
-        description: This is ${{ parameters.name }}
+        description: ${{ parameters.description }}
         repoUrl: ${{ parameters.repoUrl }}
 
   output:

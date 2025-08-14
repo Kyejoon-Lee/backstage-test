@@ -10,3 +10,11 @@ spec:
   type: service
   owner: group:default/guests
   lifecycle: experimental
+---
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: my-templates
+spec:
+  targets:
+    - ./template.yaml
