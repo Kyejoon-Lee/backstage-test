@@ -6,5 +6,5 @@ metadata:
     github.com/project-slug: Kyejoon-Lee/backstage-test
 spec:
   type: service
-  owner: hj537@naver.com
+  owner: guest:kyejoonlee
   lifecycle: experimental

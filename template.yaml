@@ -8,3 +8,26 @@ metadata:
 spec:
   owner: user:kyejoonlee
   type: service
+  parameters:
+    - title: Fill in some steps
+      required:
+        - chart name
+      properties:
+        name:
+          title: Chart Name
+          type: string
+          description: Unique name of the component
+          ui:autofocus: true
+          ui:options:
+            rows: 5
+    - title: Choose a location
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository Location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
