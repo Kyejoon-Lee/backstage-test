@@ -29,13 +29,12 @@ spec:
           type: string
           description: Version of the chart
           default: "0.1.0"
-        valuesFile:
-          title: Values YAML File
+        myFile:
+          title: Pick a YAML file
           type: string
-          description: Upload a Helm values.yaml file
-          ui:field: Upload
+          format: data-url
           ui:options:
-            accept: ".yaml,.yml"
+            accept: '.yaml,.yml' # 특정 파일 확장자만 허용
     - title: Application Configuration
       required:
         - imageRepository
