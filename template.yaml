@@ -100,7 +100,6 @@ spec:
         description: "Add Helm chart ${{ parameters.chartName }} v${{ parameters.version }} for ${{ parameters.deploymentType }}"
         defaultBranch: main
         gitCommitMessage: "Add Helm chart ${{ parameters.chartName }} v${{ parameters.version }}"
-        allowedHosts: ['github.com']
 
   output:
     links:
