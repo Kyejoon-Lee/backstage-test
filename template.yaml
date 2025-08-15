@@ -93,17 +93,15 @@ spec:
         targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}/uploaded-file.yaml
 
     - id: publish
-      name: Publish to Repository
+      name: Publish
       action: publish:github
       input:
+        allowedHosts:
+          - github.com
+        description: This is ${{ parameters.component_id }}
         repoUrl: github.com?owner=Kyejoon-Lee&repo=backstage-test
-        description: "Helm chart repository"
-        gitCommitMessage: "Add Helm chart ${{ parameters.chartName }} v${{ parameters.version }}"
-        gitAuthorName: "Backstage"
-        gitAuthorEmail: "backstage@example.com"
-        allowRepoOverwrite: true
-        sourcePath: charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
-        targetPath: charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
+        protectDefaultBranch: false
+        repoVisibility: public
 
     - id: register
       name: Register in Catalog
