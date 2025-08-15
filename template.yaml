@@ -93,15 +93,17 @@ spec:
         targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}/uploaded-file.yaml
 
     - id: publish
-      name: Publish
-      action: publish:github
+      name: Create PR to Add Chart
+      action: publish:github:pull-request
       input:
-        allowedHosts:
-          - github.com
-        description: This is ${{ parameters.component_id }}
         repoUrl: github.com?owner=Kyejoon-Lee&repo=backstage-test
-        protectDefaultBranch: false
-        repoVisibility: public
+        branchName: add-${{ parameters.chartName }}-${{ parameters.version }}
+        title: "Add Helm chart ${{ parameters.chartName }} ${{ parameters.version }}"
+        description: "Automated PR from Backstage"
+        commitMessage: "Add chart ${{ parameters.chartName }} ${{ parameters.version }}"
+        sourcePath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
+        targetPath: charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
+
 
     - id: register
       name: Register in Catalog
