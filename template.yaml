@@ -66,34 +66,18 @@ spec:
   steps:
     - id: fetch-base
       name: Fetch Base Template
-      action: fetch:template
+      action: fetch:plain
       input:
         url: ./starter/${{ parameters.starterType }}
         targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
-        values:
-          chartName: ${{ parameters.chartName }}
-          version: ${{ parameters.version }}
-          deploymentType: ${{ parameters.deploymentType }}
-          valuesFile: ${{ parameters.valuesFile }}
 
-    - id: copy-values-file
-      name: Copy Selected Values File
-      action: fs:write
-      input:
-        path: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}/values.yaml
-        content: |
-          # Values file: ${{ parameters.valuesFile }}
-          # This would contain the contents of ${{ parameters.valuesFile }}
-          # TODO: Load actual file content from starter/${{ parameters.starterType }}/${{ parameters.valuesFile }}
-
-    - id: copy-upload
-      name: Save Uploaded File (if provided)
+    - id: write-uploaded-file
+      name: Write Uploaded File
       if: ${{ parameters.uploadFile }}
-      action: fs:write
+      action: fetch:plain
       input:
-        path: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}/uploaded-file.yaml
-        content: ${{ parameters.uploadFile }}
-        encoding: base64
+        url: data:${{ parameters.uploadFile }}
+        targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}/uploaded-file.yaml
 
     - id: publish
       name: Publish to Repository
