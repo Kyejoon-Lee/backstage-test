@@ -96,9 +96,11 @@ spec:
       name: Publish to Repository
       action: publish:github
       input:
-        description: "Add Helm chart ${{ parameters.chartName }} v${{ parameters.version }} for ${{ parameters.deploymentType }}"
         repoUrl: github.com?owner=Kyejoon-Lee&repo=backstage-test
+        description: "Add Helm chart ${{ parameters.chartName }} v${{ parameters.version }} for ${{ parameters.deploymentType }}"
         defaultBranch: main
+        gitCommitMessage: "Add Helm chart ${{ parameters.chartName }} v${{ parameters.version }}"
+        allowedHosts: ['github.com']
 
   output:
     links:
