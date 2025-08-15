@@ -105,12 +105,11 @@ spec:
         targetPath: charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
 
 
-    - id: register
-      name: Register in Catalog
-      action: catalog:register
+    - id: refresh
+      name: Refresh Catalog Entity
+      action: catalog:refresh
       input:
-        repoContentsUrl: https://github.com/Kyejoon-Lee/backstage-test/tree/main
-        catalogInfoPath: /catalog-info.yaml
+        entityRef: component:default/backstage-test
 
   output:
     links:
