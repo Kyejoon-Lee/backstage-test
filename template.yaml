@@ -38,22 +38,19 @@ spec:
           description: Choose a starter folder
           enum: [basic, dp]
 
-    # Values File - UI에서는 하나처럼 보이게, 내부적으로는 조건부
     - title: Values File
-      if: ${{ parameters.starterType == 'basic' }}
+      description: Choose a values file based on the starter
+      required: true
       properties:
         valuesFile:
-          type: string
-          enum: [values.yaml, ginger-starter-values.yaml]
-          description: Choose a values file for Basic starter
+          oneOf:
+            - if: ${{ parameters.starterType == 'basic' }}
+              type: string
+              enum: [values.yaml, ginger-starter-values.yaml]
+            - if: ${{ parameters.starterType == 'dp' }}
+              type: string
+              enum: [dp-starter-values.yaml]
 
-    - title: Values File
-      if: ${{ parameters.starterType == 'dp' }}
-      properties:
-        valuesFile:
-          type: string
-          enum: [dp-starter-values.yaml]
-          description: Choose a values file for DP starter
 
     - title: Optional File Upload
       properties:
