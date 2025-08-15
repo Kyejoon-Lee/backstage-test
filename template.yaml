@@ -62,7 +62,7 @@ spec:
           type: string
           format: data-url
           description: Optional file to upload (e.g., custom values.yaml)
-
+  steps:
     - id: copy-starter
       name: Copy Starter to Charts
       action: fs:copy
