@@ -64,19 +64,6 @@ spec:
           format: data-url
           description: Optional file to upload (e.g., custom values.yaml)
   steps:
-    - id: create-directory
-      name: Create Chart Directory Structure
-      action: fetch:template
-      input:
-        url: ./starter/${{ parameters.starterType }}
-        targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
-        values:
-          chartName: ${{ parameters.chartName }}
-          version: ${{ parameters.version }}
-          deploymentType: ${{ parameters.deploymentType }}
-        copyWithoutTemplating:
-          - "**/*"
-
     - id: fetch-base
       name: Copy Starter Files
       action: fetch:plain
