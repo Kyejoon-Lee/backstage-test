@@ -64,13 +64,27 @@ spec:
           format: data-url
           description: Optional file to upload (e.g., custom values.yaml)
   steps:
-    - id: copy-starter
-      name: Copy Starter to Charts
-      action: fs:copy
+    - id: fetch-base
+      name: Fetch Base Template
+      action: fetch:template
       input:
-        files:
-          - from: ./starter/${{ parameters.starterType }}
-            to: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
+        url: ./starter/${{ parameters.starterType }}
+        targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
+        values:
+          chartName: ${{ parameters.chartName }}
+          version: ${{ parameters.version }}
+          deploymentType: ${{ parameters.deploymentType }}
+          valuesFile: ${{ parameters.valuesFile }}
+
+    - id: copy-values-file
+      name: Copy Selected Values File
+      action: fs:write
+      input:
+        path: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}/values.yaml
+        content: |
+          # Values file: ${{ parameters.valuesFile }}
+          # This would contain the contents of ${{ parameters.valuesFile }}
+          # TODO: Load actual file content from starter/${{ parameters.starterType }}/${{ parameters.valuesFile }}
 
     - id: copy-upload
       name: Save Uploaded File (if provided)
@@ -81,13 +95,13 @@ spec:
         content: ${{ parameters.uploadFile }}
         encoding: base64
 
-    - id: commit-and-push
-      name: Commit & Push to Git
-      action: git:commitAndPush
+    - id: publish
+      name: Publish to Repository
+      action: publish:github
       input:
+        description: "Helm chart ${{ parameters.chartName }} v${{ parameters.version }}"
         repoUrl: github.com?owner=example&repo=helm-charts
-        branch: main
-        commitMessage: "Add chart ${{ parameters.chartName }} v${{ parameters.version }}"
+        defaultBranch: main
 
   output:
     links:
