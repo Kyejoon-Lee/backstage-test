@@ -74,9 +74,9 @@ spec:
     - id: write-uploaded-file
       name: Write Uploaded File
       if: ${{ parameters.uploadFile }}
-      action: fetch:plain
+      action: fetch:template:file
       input:
-        url: data:${{ parameters.uploadFile }}
+        url: ${{ parameters.uploadFile }}
         targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}/${{ parameters.starterType }}/uploaded-file.yaml
 
     - id: publish
