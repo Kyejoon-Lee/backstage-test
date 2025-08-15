@@ -63,6 +63,7 @@ spec:
           type: string
           format: data-url
           description: Optional file to upload (e.g., custom values.yaml)
+
   steps:
     - id: fetch-base
       name: Copy Starter Files
@@ -74,7 +75,7 @@ spec:
     - id: write-uploaded-file
       name: Write Uploaded File
       if: ${{ parameters.uploadFile }}
-      action: fetch:template:file
+      action: fetch:plain
       input:
         url: ${{ parameters.uploadFile }}
         targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}/${{ parameters.starterType }}/uploaded-file.yaml
@@ -93,5 +94,5 @@ spec:
 
   output:
     links:
-      - title: View in GitHub
-        url: https://github.com/example/helm-charts
+      - title: View Pull Request
+        url: ${{ steps.publish.output.pullRequestUrl }}
