@@ -54,12 +54,18 @@ spec:
                 starterType:
                   enum: [basic]
                 valuesFile:
+                  title: Values File
+                  type: string
                   enum: [values.yaml, ginger-starter-values.yaml]
+                  enumNames: ["values.yaml", "ginger-starter-values.yaml"]
             - properties:
                 starterType:
                   enum: [dp]
                 valuesFile:
+                  title: Values File
+                  type: string
                   enum: [dp-starter-values.yaml]
+                  enumNames: ["values.yaml"]
 
 
     - title: Optional File Upload
