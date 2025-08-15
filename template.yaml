@@ -104,13 +104,6 @@ spec:
         sourcePath: ./starter/${{ parameters.starterType }}
         targetPath: charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
 
-
-    - id: refresh
-      name: Refresh Catalog Entity
-      action: catalog:refresh
-      input:
-        entityRef: component:default/backstage-test
-
   output:
     links:
       - title: View in GitHub
