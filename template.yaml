@@ -38,35 +38,33 @@ spec:
           description: Choose a starter folder
           enum: [basic, dp]
 
-    - title: Values File
-      description: Choose a values file based on the starter
-      required:
-        - valuesFile
-      properties:
-        valuesFile:
-          title: Values File
-          type: string
-          description: Select a values file
-      dependencies:
-        starterType:
-          oneOf:
-            - properties:
-                starterType:
-                  enum: [basic]
-                valuesFile:
-                  title: Values File
-                  type: string
-                  enum: [values.yaml, ginger-starter-values.yaml]
-                  enumNames: ["values.yaml", "ginger-starter-values.yaml"]
-            - properties:
-                starterType:
-                  enum: [dp]
-                valuesFile:
-                  title: Values File
-                  type: string
-                  enum: [dp-starter-values.yaml]
-                  enumNames: ["values.yaml"]
-
+    - title: Values File Selection
+      description: Choose a values file based on your starter selection
+      allOf:
+        - if:
+            properties:
+              starterType:
+                const: basic
+          then:
+            properties:
+              valuesFile:
+                title: Values File
+                type: string
+                enum: [values.yaml, ginger-starter-values.yaml]
+                enumNames: ["Basic Values", "Ginger Starter Values"]
+            required: [valuesFile]
+        - if:
+            properties:
+              starterType:
+                const: dp
+          then:
+            properties:
+              valuesFile:
+                title: Values File
+                type: string
+                enum: [dp-starter-values.yaml]
+                enumNames: ["DP Starter Values"]
+            required: [valuesFile]
 
     - title: Optional File Upload
       properties:
