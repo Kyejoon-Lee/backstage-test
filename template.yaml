@@ -1,99 +1,96 @@
 apiVersion: scaffolder.backstage.io/v1beta3
-# https://backstage.io/docs/features/software-catalog/descriptor-format#kind-template
 kind: Template
 metadata:
   name: helm-upload-template
-  title: Helm Upload Template
-  description: An example template for the scaffolder that uploads a Helm chart to a Git repository
-  namespace: default
+  title: Helm Chart Upload Template
+  description: Upload a Helm chart to a repository with starter selection
 spec:
   owner: hj537@naver.com
   type: service
+
   parameters:
-    - title: Chart Information
+    - title: Chart Info
       required:
-        - name
-        - description
+        - chartName
+        - version
+        - deploymentType
       properties:
-        name:
+        chartName:
           title: Chart Name
           type: string
-          description: Unique name of the Helm chart
-          ui:autofocus: true
-        description:
-          title: Chart Description
-          type: string
-          description: Description of what this Helm chart does
+          description: Name of the Helm chart
         version:
           title: Chart Version
           type: string
-          description: Version of the chart
-          default: "0.1.0"
-        myFile:
-          title: Pick a YAML file
+          description: Version of the Helm chart
+        deploymentType:
+          title: Deployment Type
+          type: string
+          enum: [dev, stage, prod]
+
+    - title: Starter Selection
+      required:
+        - starterType
+        - valuesFile
+      properties:
+        starterType:
+          title: Starter Type
+          type: string
+          description: Choose a starter folder
+          enum: ${{ steps.list-starters.output.starterList }}
+        valuesFile:
+          title: Values File
+          type: string
+          description: Choose a values file from the starter folder
+          enum: ${{ steps.list-values.output.valuesList }}
+
+    - title: Optional File Upload
+      properties:
+        uploadFile:
+          title: Additional File
           type: string
           format: data-url
-          ui:options:
-            accept: '.yaml,.yml' # 특정 파일 확장자만 허용
-    - title: Application Configuration
-      required:
-        - imageRepository
-      properties:
-        imageRepository:
-          title: Container Image Repository
-          type: string
-          description: Container image repository (e.g., nginx, myapp/backend)
-          default: "nginx"
-        imageTag:
-          title: Image Tag
-          type: string
-          description: Container image tag
-          default: "latest"
-        replicaCount:
-          title: Replica Count
-          type: integer
-          description: Number of replicas to deploy
-          default: 1
-          minimum: 1
-          maximum: 10
-    - title: Choose a location
-      required:
-        - repoUrl
-      properties:
-        repoUrl:
-          title: Repository Location
-          type: string
-          ui:field: RepoUrlPicker
-          ui:options:
-            allowedHosts:
-              - github.com
+          description: Optional file to upload (e.g., custom values.yaml)
 
   steps:
-    - id: fetch-base
-      name: Fetch Base
-      action: fetch:template
+    - id: list-starters
+      name: List Starter Folders
+      action: fs:readdir
       input:
-        url: ./starter
-        values:
-          name: ${{ parameters.name }}
-          description: ${{ parameters.description }}
-          version: ${{ parameters.version }}
-          imageRepository: ${{ parameters.imageRepository }}
-          imageTag: ${{ parameters.imageTag }}
-          replicaCount: ${{ parameters.replicaCount }}
+        path: ./starter
 
-    - id: publish
-      name: Publish
-      action: publish:github
+    - id: list-values
+      name: List Values Files
+      action: fs:glob
       input:
-        allowedHosts: ['github.com']
-        description: ${{ parameters.description }}
-        repoUrl: ${{ parameters.repoUrl }}
+        pattern: ./starter/${{ parameters.starterType }}/*-values.yaml
+
+    - id: copy-starter
+      name: Copy Starter to Charts
+      action: fs:copy
+      input:
+        files:
+          - from: ./starter/${{ parameters.starterType }}
+            to: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
+
+    - id: copy-upload
+      name: Save Uploaded File (if provided)
+      if: ${{ parameters.uploadFile }}
+      action: fs:write
+      input:
+        path: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}/uploaded-file.yaml
+        content: ${{ parameters.uploadFile }}
+        encoding: base64
+
+    - id: commit-and-push
+      name: Commit & Push to Git
+      action: git:commitAndPush
+      input:
+        repoUrl: github.com?owner=example&repo=helm-charts
+        branch: main
+        commitMessage: "Add chart ${{ parameters.chartName }} v${{ parameters.version }}"
 
   output:
     links:
-      - title: Repository
-        url: ${{ steps['publish'].output.remoteUrl }}
-      - title: Open in catalog
-        icon: catalog
-        entityRef: ${{ steps['publish'].output.catalogInfoUrl }}
+      - title: View in GitHub
+        url: https://github.com/example/helm-charts
