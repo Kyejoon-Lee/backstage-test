@@ -97,9 +97,20 @@ spec:
       action: publish:github
       input:
         repoUrl: github.com?owner=Kyejoon-Lee&repo=backstage-test
-        description: "Add Helm chart ${{ parameters.chartName }} v${{ parameters.version }} for ${{ parameters.deploymentType }}"
-        defaultBranch: main
+        description: "Helm chart repository"
         gitCommitMessage: "Add Helm chart ${{ parameters.chartName }} v${{ parameters.version }}"
+        gitAuthorName: "Backstage"
+        gitAuthorEmail: "backstage@example.com"
+        allowRepoOverwrite: true
+        sourcePath: charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
+        targetPath: charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
+
+    - id: register
+      name: Register in Catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: https://github.com/Kyejoon-Lee/backstage-test/tree/main
+        catalogInfoPath: /catalog-info.yaml
 
   output:
     links:
