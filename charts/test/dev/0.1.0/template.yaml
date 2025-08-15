@@ -1,0 +1,118 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: helm-upload-template
+  title: Helm Chart Upload Template
+  description: Upload a Helm chart to a repository with starter selection
+spec:
+  owner: hj537@naver.com
+  type: service
+
+  parameters:
+    - title: Chart Info
+      required:
+        - chartName
+        - version
+        - deploymentType
+      properties:
+        chartName:
+          title: Chart Name
+          type: string
+          description: Name of the Helm chart
+        version:
+          title: Chart Version
+          type: string
+          description: Version of the Helm chart
+        deploymentType:
+          title: Deployment Type
+          type: string
+          enum: [dev, stage, prod, qa]
+
+    - title: Starter and Values Selection
+      required:
+        - starterType
+        - valuesFile
+      properties:
+        starterType:
+          title: Starter Type
+          type: string
+          description: Choose a starter folder
+          enum: [basic, dp]
+        valuesFile:
+          title: Values File
+          type: string
+          description: Select a values file
+      dependencies:
+        starterType:
+          oneOf:
+            - properties:
+                starterType:
+                  const: basic
+                valuesFile:
+                  enum: [values.yaml, ginger-starter-values.yaml]
+            - properties:
+                starterType:
+                  const: dp
+                valuesFile:
+                  enum: [dp-starter-values.yaml]
+
+    - title: Optional File Upload
+      properties:
+        uploadFile:
+          title: Additional File
+          type: string
+          format: data-url
+          description: Optional file to upload (e.g., custom values.yaml)
+  steps:
+    - id: create-directory
+      name: Create Chart Directory Structure
+      action: fetch:template
+      input:
+        url: ./
+        targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
+        values:
+          chartName: ${{ parameters.chartName }}
+          version: ${{ parameters.version }}
+          deploymentType: ${{ parameters.deploymentType }}
+        copyWithoutTemplating:
+          - "**/*"
+
+    - id: fetch-base
+      name: Copy Starter Files
+      action: fetch:plain
+      input:
+        url: ./starter/${{ parameters.starterType }}
+        targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
+
+    - id: write-uploaded-file
+      name: Write Uploaded File
+      if: ${{ parameters.uploadFile }}
+      action: fetch:plain
+      input:
+        url: data:${{ parameters.uploadFile }}
+        targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}/uploaded-file.yaml
+
+    - id: publish
+      name: Create PR to Add Chart
+      action: publish:github:pull-request
+      input:
+        repoUrl: github.com?owner=Kyejoon-Lee&repo=backstage-test
+        branchName: add-${{ parameters.chartName }}-${{ parameters.version }}
+        title: "Add Helm chart ${{ parameters.chartName }} ${{ parameters.version }}"
+        description: "Automated PR from Backstage"
+        commitMessage: "Add chart ${{ parameters.chartName }} ${{ parameters.version }}"
+        sourcePath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
+        targetPath: charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
+
+
+    - id: register
+      name: Register in Catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: https://github.com/Kyejoon-Lee/backstage-test/tree/main
+        catalogInfoPath: /catalog-info.yaml
+
+  output:
+    links:
+      - title: View in GitHub
+        url: https://github.com/example/helm-charts

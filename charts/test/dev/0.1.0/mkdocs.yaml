@@ -1,0 +1,17 @@
+site_name: 'Backstage Test Documentation'
+site_description: 'Documentation for the Backstage Test Helm Chart Template'
+
+docs_dir: docs
+
+nav:
+  - Home: index.md
+  - Usage Guide: usage-guide.md
+  - Values Reference: values-reference.md
+
+plugins:
+  - techdocs-core
+
+theme:
+  name: material
+  palette:
+    primary: blue
