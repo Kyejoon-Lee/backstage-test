@@ -101,7 +101,7 @@ spec:
         title: "Add Helm chart ${{ parameters.chartName }} ${{ parameters.version }}"
         description: "Automated PR from Backstage"
         commitMessage: "Add chart ${{ parameters.chartName }} ${{ parameters.version }}"
-        sourcePath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
+        sourcePath: ./starter/${{ parameters.starterType }}
         targetPath: charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
 
 
