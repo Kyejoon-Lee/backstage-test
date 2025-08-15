@@ -26,7 +26,7 @@ spec:
         deploymentType:
           title: Deployment Type
           type: string
-          enum: [dev, stage, prod, qa]
+          enum: [ dev, stage, prod, qa ]
 
     - title: Starter and Values Selection
       required:
@@ -37,7 +37,7 @@ spec:
           title: Starter Type
           type: string
           description: Choose a starter folder
-          enum: [basic, dp]
+          enum: [ basic, dp ]
         valuesFile:
           title: Values File
           type: string
@@ -49,12 +49,12 @@ spec:
                 starterType:
                   const: basic
                 valuesFile:
-                  enum: [values.yaml, ginger-starter-values.yaml]
+                  enum: [ values.yaml, ginger-starter-values.yaml ]
             - properties:
                 starterType:
                   const: dp
                 valuesFile:
-                  enum: [dp-starter-values.yaml]
+                  enum: [ dp-starter-values.yaml ]
 
     - title: Optional File Upload
       properties:
@@ -69,7 +69,7 @@ spec:
       action: fetch:plain
       input:
         url: ./starter/${{ parameters.starterType }}
-        targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
+        targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}/${{ parameters.starterType }}
 
     - id: write-uploaded-file
       name: Write Uploaded File
@@ -77,7 +77,7 @@ spec:
       action: fetch:plain
       input:
         url: data:${{ parameters.uploadFile }}
-        targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}/uploaded-file.yaml
+        targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}/${{ parameters.starterType }}/uploaded-file.yaml
 
     - id: publish
       name: Create PR to Add Chart
@@ -88,8 +88,8 @@ spec:
         title: "Add Helm chart ${{ parameters.chartName }} ${{ parameters.version }}"
         description: "Automated PR from Backstage"
         commitMessage: "Add chart ${{ parameters.chartName }} ${{ parameters.version }}"
-        sourcePath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
-        targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
+        sourcePath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}/${{ parameters.starterType }}
+        targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}/${{ parameters.starterType }}
 
   output:
     links:
