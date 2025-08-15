@@ -64,8 +64,21 @@ spec:
           format: data-url
           description: Optional file to upload (e.g., custom values.yaml)
   steps:
+    - id: create-directory
+      name: Create Chart Directory Structure
+      action: fetch:template
+      input:
+        url: ./
+        targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
+        values:
+          chartName: ${{ parameters.chartName }}
+          version: ${{ parameters.version }}
+          deploymentType: ${{ parameters.deploymentType }}
+        copyWithoutTemplating:
+          - "**/*"
+
     - id: fetch-base
-      name: Fetch Base Template
+      name: Copy Starter Files
       action: fetch:plain
       input:
         url: ./starter/${{ parameters.starterType }}
@@ -83,8 +96,8 @@ spec:
       name: Publish to Repository
       action: publish:github
       input:
-        description: "Helm chart ${{ parameters.chartName }} v${{ parameters.version }}"
-        repoUrl: github.com?owner=example&repo=helm-charts
+        description: "Add Helm chart ${{ parameters.chartName }} v${{ parameters.version }} for ${{ parameters.deploymentType }}"
+        repoUrl: github.com?owner=Kyejoon-Lee&repo=backstage-test
         defaultBranch: main
 
   output:
