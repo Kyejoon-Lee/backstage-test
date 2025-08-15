@@ -40,16 +40,26 @@ spec:
 
     - title: Values File
       description: Choose a values file based on the starter
-      required: true
+      required:
+        - valuesFile
       properties:
         valuesFile:
+          title: Values File
+          type: string
+          description: Select a values file
+      dependencies:
+        starterType:
           oneOf:
-            - if: ${{ parameters.starterType == 'basic' }}
-              type: string
-              enum: [values.yaml, ginger-starter-values.yaml]
-            - if: ${{ parameters.starterType == 'dp' }}
-              type: string
-              enum: [dp-starter-values.yaml]
+            - properties:
+                starterType:
+                  enum: [basic]
+                valuesFile:
+                  enum: [values.yaml, ginger-starter-values.yaml]
+            - properties:
+                starterType:
+                  enum: [dp]
+                valuesFile:
+                  enum: [dp-starter-values.yaml]
 
 
     - title: Optional File Upload
