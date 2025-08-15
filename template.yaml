@@ -68,7 +68,7 @@ spec:
       name: Create Chart Directory Structure
       action: fetch:template
       input:
-        url: ./
+        url: ./starter/${{ parameters.starterType }}
         targetPath: ./charts/${{ parameters.chartName }}/${{ parameters.deploymentType }}/${{ parameters.version }}
         values:
           chartName: ${{ parameters.chartName }}
