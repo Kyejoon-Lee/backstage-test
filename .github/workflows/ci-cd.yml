@@ -107,10 +107,26 @@ jobs:
               helm create "$name"
             fi
             
-            # 2. charts/{name}/{env}/{version}/{name} 안에서 helm lint 실행
+            # Chart.yaml의 version과 appVersion을 디렉토리 버전으로 업데이트
             cd "$name"
-            echo "Running helm lint for $name..."
+            if [ -f "Chart.yaml" ]; then
+              echo "Updating Chart.yaml with version: $version"
+              
+              # version과 appVersion을 디렉토리의 버전으로 업데이트
+              sed -i.bak "s/^version:.*/version: $version/" Chart.yaml
+              sed -i.bak "s/^appVersion:.*/appVersion: \"$version\"/" Chart.yaml
+              
+              # 백업 파일 삭제
+              rm -f Chart.yaml.bak
+              
+              echo "Chart.yaml updated successfully"
+              cat Chart.yaml | grep -E "(version|appVersion):"
+            else
+              echo "Warning: Chart.yaml not found in $name directory"
+            fi
             
+            # 2. charts/{name}/{env}/{version}/{name} 안에서 helm lint 실행
+            echo "Running helm lint for $name..."
             helm lint . --values override-values.yaml
             
             # 3. helm dependency build, package, repo index 실행
