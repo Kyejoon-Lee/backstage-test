@@ -1,0 +1,93 @@
+nameOverride: aipf-authn-api
+image:
+  repository: harbor.mgmt.lunit.in/tig/aipf-authn-api
+  tag: latest
+command: 
+  - sleep
+  - "10000"
+args: []
+resources:
+  limits:
+    memory: 256Mi
+    cpu: 200m
+  requests:
+    cpu: 50m
+    memory: 128Mi
+containerPorts:
+- name: http
+  containerPort: 8081
+  protocol: TCP
+readinessProbe:
+  method:
+    httpGet:
+      path: /authn/health
+      port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+livenessProbe:
+  method:
+    httpGet:
+      path: /authn/health
+      port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+containerSecurityContext:
+  runAsNonRoot: false
+  runAsUser: 1000
+  runAsGroup: 1000
+configs:
+  cm:
+    data:
+      AUTHN_SERVER_HOST: aipf-authz-api.tig-qa.lunit.in
+      AUTHN_SERVER_PORT: '8081'
+      AUTHN_DB_HOST: db.common.tig-dev.lunit.in
+      AUTHN_DB_PORT: '5432'
+      AUTHN_DB_NAME: authz-qa
+      AUTHN_DB_SSL_MODE: require
+      AUTHN_REDIS_HOST: redis.common.tig-dev.lunit.in
+      AUTHN_REDIS_PORT: '6379'
+      AUTHN_REDIS_DB: 1
+      AUTHN_REDIS_PASSWORD: ''
+      AUTHN_KEYCLOAK_SERVER_URL: https://keycloak.mgmt.lunit.in
+      AUTHN_KEYCLOAK_REALM: lunit
+      AUTHN_KEYCLOAK_CLIENT_ID: aipf-authz-api
+      AUTHN_LOG_LEVEL: info
+      AUTHN_LOG_FORMAT: json
+      AUTHN_MONITORING_ENABLED: 'true'
+      AUTHN_MONITORING_METRICS_PATH: '/metrics'
+      AUTHN_CORS_ALLOWED_ORIGINS: http://host.docker.internal:3000,https://aipf.tig-qa.lunit.in,https://auth.ctl-demo.csg-dev.lunit.in,https://oncology-data-management-git-stage-lunit.vercel.app,https://scope-dp-console-git-stage-lunit.vercel.app,https://stage-scope-annotation-tool-front.vercel.app
+  secret:
+    create: true
+    refreshInterval: 60s
+    secretStoreRef:
+      name: gcp-in-cluster
+    data:
+    - secretKey: AUTHN_DB_USER
+      remoteRef:
+        key: aipf-qa-authz-db-username
+    - secretKey: AUTHN_DB_PASSWORD
+      remoteRef:
+        key: aipf-qa-authz-db-password
+
+istio:
+  create: true
+  virtualService:
+    gateways:
+    - istio-system/tig-qa-lunit-in
+    hosts:
+    - aipf-authz-api.tig-qa.lunit.in
+    http:
+    - match:
+      - uri:
+          prefix: /realms
+      - uri:
+          prefix: /resources
+      - uri:
+          prefix: /authn
+      route:
+      - destination:
+          host: aipf-authn-api-qa
