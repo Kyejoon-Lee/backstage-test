@@ -29,11 +29,11 @@ jobs:
     - name: Detect new charts
       id: detect-charts
       run: |
-        # 새롭게 추가된 charts/{name}/production/{version} 디렉토리 감지
+        # 새롭게 추가된 charts/{name}/{env}/{version} 디렉토리 감지 (환경은 가변적)
         BASE_SHA="${{ github.event.before }}"
         
-        # Git diff로 새로 추가된 charts 디렉토리 찾기
-        NEW_CHARTS=$(git diff --name-only --diff-filter=A $BASE_SHA HEAD | grep -E '^charts/[^/]+/production/[^/]+/' | cut -d'/' -f1-4 | sort -u || true)
+        # Git diff로 새로 추가된 charts 디렉토리 찾기 (환경 이름은 가변적)
+        NEW_CHARTS=$(git diff --name-only --diff-filter=A $BASE_SHA HEAD | grep -E '^charts/[^/]+/[^/]+/[^/]+/' | cut -d'/' -f1-4 | sort -u || true)
         
         echo "Detected new charts:"
         echo "$NEW_CHARTS"
@@ -53,13 +53,14 @@ jobs:
           if [ -n "$chart_path" ]; then
             echo "Processing: $chart_path"
             
-            # charts/{name}/production/{version} 경로에서 name과 version 추출
+            # charts/{name}/{env}/{version} 경로에서 name, env, version 추출
             name=$(echo "$chart_path" | cut -d'/' -f2)
+            env=$(echo "$chart_path" | cut -d'/' -f3)
             version=$(echo "$chart_path" | cut -d'/' -f4)
             
-            echo "Chart name: $name, Version: $version"
+            echo "Chart name: $name, Environment: $env, Version: $version"
             
-            # 1. charts/{name}/production/{version} 디렉토리로 이동하여 helm create 실행
+            # 1. charts/{name}/{env}/{version} 디렉토리로 이동하여 helm create 실행
             cd "$chart_path"
             
             # starter 디렉토리가 있는지 확인하고 helm create 실행
@@ -70,7 +71,7 @@ jobs:
             echo "Removing starter directory..."
             rm -rf "./starter"
             
-            # 2. charts/{name}/production/{version}/{name} 안에서 helm lint 실행
+            # 2. charts/{name}/{env}/{version}/{name} 안에서 helm lint 실행
             cd "$name"
             echo "Running helm lint for $name..."
             
@@ -82,7 +83,7 @@ jobs:
             helm package ./
             helm repo index ./
             
-            echo "Completed processing for $name"
+            echo "Completed processing for $name in $env environment"
             cd - > /dev/null
           fi
         done <<< "${{ steps.detect-charts.outputs.NEW_CHARTS }}"
