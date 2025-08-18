@@ -64,12 +64,18 @@ jobs:
             cd "$chart_path"
             
             # starter 디렉토리가 있는지 확인하고 helm create 실행
-            echo "Creating chart using local starter directory"
-            helm create --starter "./starter" "$name"
-            
-            # starter 디렉토리 삭제
-            echo "Removing starter directory..."
-            rm -rf "./starter"
+            if [ -d "./starter" ]; then
+              echo "Creating chart using local starter directory"
+              STARTER_PATH=$(pwd)/starter
+              helm create --starter "$STARTER_PATH" "$name"
+              
+              # starter 디렉토리 삭제
+              echo "Removing starter directory..."
+              rm -rf "./starter"
+            else
+              echo "No starter directory found, creating default chart"
+              helm create "$name"
+            fi
             
             # 2. charts/{name}/{env}/{version}/{name} 안에서 helm lint 실행
             cd "$name"
