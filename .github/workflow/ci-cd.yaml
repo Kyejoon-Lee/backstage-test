@@ -1,0 +1,107 @@
+name: CI & CD dev
+run-name: CI/CD - dev
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  helm-operations:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # 전체 히스토리를 가져와서 변경사항 감지
+
+    - name: Install Helm
+      run: |
+        curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+        sudo apt-get install apt-transport-https --yes
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+        sudo apt-get update
+        sudo apt-get install helm
+
+    - name: Verify Helm installation
+      run: helm version
+
+    - name: Detect new charts
+      id: detect-charts
+      run: |
+        # 새롭게 추가된 charts/{name}/production/{version} 디렉토리 감지
+        BASE_SHA="${{ github.event.before }}"
+        
+        # Git diff로 새로 추가된 charts 디렉토리 찾기
+        NEW_CHARTS=$(git diff --name-only --diff-filter=A $BASE_SHA HEAD | grep -E '^charts/[^/]+/production/[^/]+/' | cut -d'/' -f1-4 | sort -u || true)
+        
+        echo "Detected new charts:"
+        echo "$NEW_CHARTS"
+        
+        # 결과를 환경 변수로 저장
+        echo "NEW_CHARTS<<EOF" >> $GITHUB_OUTPUT
+        echo "$NEW_CHARTS" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Process new charts
+      if: steps.detect-charts.outputs.NEW_CHARTS != ''
+      run: |
+        echo "Processing new charts..."
+        
+        # 새로 감지된 각 차트에 대해 처리
+        while IFS= read -r chart_path; do
+          if [ -n "$chart_path" ]; then
+            echo "Processing: $chart_path"
+            
+            # charts/{name}/production/{version} 경로에서 name과 version 추출
+            name=$(echo "$chart_path" | cut -d'/' -f2)
+            version=$(echo "$chart_path" | cut -d'/' -f4)
+            
+            echo "Chart name: $name, Version: $version"
+            
+            # 1. charts/{name}/production/{version} 디렉토리로 이동하여 helm create 실행
+            cd "$chart_path"
+            
+            # starter 디렉토리가 있는지 확인하고 helm create 실행
+            echo "Creating chart using local starter directory"
+            helm create --starter "./starter" "$name"
+            
+            # starter 디렉토리 삭제
+            echo "Removing starter directory..."
+            rm -rf "./starter"
+            
+            # 2. charts/{name}/production/{version}/{name} 안에서 helm lint 실행
+            cd "$name"
+            echo "Running helm lint for $name..."
+            
+            helm lint . --values override-values.yaml
+            
+            # 3. helm dependency build, package, repo index 실행
+            echo "Building dependencies, packaging, and indexing..."
+            helm dependency build ./
+            helm package ./
+            helm repo index ./
+            
+            echo "Completed processing for $name"
+            cd - > /dev/null
+          fi
+        done <<< "${{ steps.detect-charts.outputs.NEW_CHARTS }}"
+
+    - name: Commit and push changes to main
+      if: steps.detect-charts.outputs.NEW_CHARTS != ''
+      run: |
+        # Git 설정
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # 변경사항 스테이징
+        git add charts/
+        
+        # 커밋 (변경사항이 있을 때만)
+        if ! git diff --staged --quiet; then
+          git commit -m "chore: remove starter directories and add helm packages"
+          git push origin main
+          echo "Changes committed and pushed to main branch"
+        else
+          echo "No changes to commit"
+        fi
