@@ -8,9 +8,9 @@ on:
       - 'charts/**/starter/**'  # starter 디렉토리 관련 변경사항만
       - 'charts/**/Chart.yaml'  # 새로운 차트의 Chart.yaml 추가
 
-# 동시성 제어: 같은 브랜치에서는 하나의 워크플로우만 실행
+# 동시성 제어: 커밋 SHA별로 그룹화하여 같은 커밋에서 발생한 변경사항만 순차 처리
 concurrency:
-  group: helm-operations-${{ github.ref }}
+  group: helm-operations-${{ github.sha }}
   cancel-in-progress: false  # 진행 중인 작업을 취소하지 않고 대기
 
 jobs:
