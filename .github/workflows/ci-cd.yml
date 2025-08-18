@@ -23,7 +23,23 @@ jobs:
       with:
         fetch-depth: 0  # 전체 히스토리를 가져와서 변경사항 감지
 
+    - name: Check commit message
+      id: check-commit
+      run: |
+        COMMIT_MSG="${{ github.event.head_commit.message }}"
+        echo "Commit message: $COMMIT_MSG"
+        
+        # 커밋 메시지에 delete, remove, cleanup 등이 포함되어 있으면 중단
+        if echo "$COMMIT_MSG" | grep -qi -E "(delete|remove|cleanup|clean|rm)"; then
+          echo "Commit message contains deletion keywords. Skipping workflow."
+          echo "skip_workflow=true" >> $GITHUB_OUTPUT
+        else
+          echo "Commit message does not contain deletion keywords. Proceeding."
+          echo "skip_workflow=false" >> $GITHUB_OUTPUT
+        fi
+
     - name: Install Helm
+      if: steps.check-commit.outputs.skip_workflow != 'true'
       run: |
         curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
         sudo apt-get install apt-transport-https --yes
@@ -32,9 +48,11 @@ jobs:
         sudo apt-get install helm
 
     - name: Verify Helm installation
+      if: steps.check-commit.outputs.skip_workflow != 'true'
       run: helm version
 
     - name: Detect new charts
+      if: steps.check-commit.outputs.skip_workflow != 'true'
       id: detect-charts
       run: |
         # 새롭게 추가된 charts/{name}/{env}/{version} 디렉토리 감지 (환경은 가변적)
@@ -52,7 +70,7 @@ jobs:
         echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Process and commit charts individually
-      if: steps.detect-charts.outputs.NEW_CHARTS != ''
+      if: steps.detect-charts.outputs.NEW_CHARTS != '' && steps.check-commit.outputs.skip_workflow != 'true'
       run: |
         echo "Processing new charts individually..."
         
