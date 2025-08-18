@@ -5,7 +5,8 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'charts/**'  # starter 디렉토리가 포함된 변경사항만 트리거
+      - 'charts/**/starter/**'  # starter 디렉토리 관련 변경사항만
+      - 'charts/**/Chart.yaml'  # 새로운 차트의 Chart.yaml 추가
 
 # 동시성 제어: 같은 브랜치에서는 하나의 워크플로우만 실행
 concurrency:
