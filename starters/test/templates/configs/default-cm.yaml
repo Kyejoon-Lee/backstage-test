@@ -1,0 +1,17 @@
+{{- if .Values.configs.cm.create }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "fullname" . }}-default
+  namespace: {{ include  "namespace" . }}
+  labels:
+    {{- include "labels" (dict "context" . "component" .Values.name "name" .Values.name) | nindent 4 }}
+  {{- with .Values.configs.cm.annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+data:
+  {{- tpl (toYaml .Values.configs.cm.data) $ | nindent 2 }}
+{{- end }}

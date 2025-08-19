@@ -1,0 +1,260 @@
+nameOverride: ""
+fullnameOverride: ""
+
+name: ""
+
+additionalLabels: {}
+
+createAggregateRoles: false
+createClusterRoles: false
+clusterRoleRules:
+  enabled: false
+  rules: []
+
+configs:
+  cm:
+    create: true
+    annotations: {}
+    data:
+      KEY1: "VALUE1"
+
+  secret:
+    create: true
+    labels: {}
+    annotations: {}
+    refreshInterval: "60s"
+    secretStoreRef:
+      name: gcp-in-cluster
+    data: []
+
+volume:
+  pvc:
+    filestore:
+      create: false # true 시 volumeMounts / volumes 정의해서 mount 해야함
+      annotations: {}
+      storageClassName: lunit-standard-rwx # 필요시 변경
+      size: 1Ti # 필요시 변경
+
+replicas: 1
+
+runtimeClassName: ""
+
+revisionHistoryLimit: 10
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 50
+  targetMemoryUtilizationPercentage: 50
+  behavior: {}
+    # scaleDown:
+    #  stabilizationWindowSeconds: 300
+    #  policies:
+    #   - type: Pods
+    #     value: 1
+    #     periodSeconds: 180
+    # scaleUp:
+    #   stabilizationWindowSeconds: 300
+    #   policies:
+    #   - type: Pods
+    #     value: 2
+    #     periodSeconds: 60
+  metrics: []
+
+pdb:
+  enabled: false
+  labels: {}
+  annotations: {}
+  minAvailable: ""
+  maxUnavailable: ""
+
+image:
+  repository: ""
+  tag: ""
+  imagePullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+args: []
+
+env: []
+
+envFrom:
+- configMapRef:
+   name: "{{ template `fullname` . }}-default"
+- secretRef:
+   name: "{{ template `fullname` . }}-default"
+
+lifecycle: {}
+
+extraContainers: []
+  # - name: cmp-my-plugin
+  #   command:
+  #     - "/var/run/argocd/argocd-cmp-server"
+  #   image: busybox
+  #   securityContext:
+  #     runAsNonRoot: true
+  #     runAsUser: 999
+  #   volumeMounts:
+  #     - mountPath: /var/run/argocd
+  #       name: var-files
+
+initContainers: []
+
+volumeMounts: []
+
+volumes: []
+#  - name: argocd-cmp-cm
+#    configMap:
+#      name: argocd-cmp-cm
+#  - name: cmp-tmp
+#    emptyDir: {}
+
+deploymentAnnotations: {}
+
+podAnnotations: {}
+
+podLabels: {}
+
+resources:
+  limits:
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 512Mi
+
+hostNetwork: false
+
+dnsConfig: {}
+dnsPolicy: "ClusterFirst"
+
+securityContext: {}
+#  runAsUser: 1000
+#  runAsGroup: 1000
+#  fsGroup: 1000
+
+containerSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+#  readOnlyRootFilesystem: false
+#  allowPrivilegeEscalation: false
+#  seccompProfile:
+#    type: RuntimeDefault
+#  capabilities:
+#    drop:
+#    - ALL
+
+readinessProbe:
+  method:
+    httpGet:
+      path: /
+      port: http
+
+  failureThreshold: 10
+  initialDelaySeconds: 30
+  periodSeconds: 20
+  successThreshold: 1
+  timeoutSeconds: 1
+
+livenessProbe:
+  method:
+    httpGet:
+      path: /
+      port: http
+
+  failureThreshold: 10
+  initialDelaySeconds: 30
+  periodSeconds: 20
+  successThreshold: 1
+  timeoutSeconds: 1
+
+terminationGracePeriodSeconds: 30
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity: none
+  nodeAffinity:
+    type: none
+#    # -- Default pod anti-affinity rules. Either: `none`, `soft` or `hard`
+#    podAntiAffinity: soft
+#    # Node affinity rules
+#    nodeAffinity:
+#      # -- Default node affinity rules. Either: `none`, `soft` or `hard`
+#      type: hard
+#      # -- Default match expressions for node affinity
+#      matchExpressions: []
+#        # - key: kubernetes.io/hostname
+#        #   operator: In
+#        #   values:
+#        #    - antarctica-east1
+#        #    - antarctica-west1
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+
+deploymentStrategy: {}
+  # type: RollingUpdate
+  # rollingUpdate:
+  #   maxSurge: 25%
+  #   maxUnavailable: 25%
+
+priorityClassName: ""
+
+containerPorts:
+- name: http
+  containerPort: 80
+  protocol: TCP
+
+service:
+  annotations: {}
+  labels: {}
+
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: http
+
+dualStack: {}
+
+automountServiceAccountToken: true
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  labels: {}
+  automountServiceAccountToken: true
+
+istio:
+  create: true
+  annotations: {}
+
+  sidecar:
+    outboundTrafficPolicy:
+      mode: REGISTRY_ONLY
+    egress: []
+
+  destinationRule:
+    host: "{{ template `fullname` . }}"
+    trafficPolicy: {}
+    subsets:
+      - name: stable
+
+  virtualService:
+    gateways: []
+    hosts:
+    - "{{ template `fullname` . }}"
+    http:
+    - route:
+      - destination:
+          host: "{{ template `fullname` . }}"
+          subset: stable
+        weight: 100
